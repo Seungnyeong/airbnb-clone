@@ -7,5 +7,6 @@
     "python.pythonPath": "/Users/sn/.local/share/virtualenvs/python_django-4TL901an/bin/python",
     "python.linting.flake8Args": [
         "--max-line-length=100"
-    ]
+    ],
+    "git.ignoreLimitWarning": true
 }
