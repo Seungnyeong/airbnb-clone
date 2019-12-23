@@ -1,0 +1,11 @@
+{
+    "editor.formatOnSave": true,
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "python.formatting.provider": "black",
+    "python.pythonPath": "/Users/sn/.local/share/virtualenvs/python_django-4TL901an/bin/python",
+    "python.linting.flake8Args": [
+        "--max-line-length=100"
+    ]
+}
