@@ -27,4 +27,3 @@ class CustomUserAdmin(UserAdmin):
             },
         ),
     )
-
