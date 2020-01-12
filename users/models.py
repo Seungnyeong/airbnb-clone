@@ -33,12 +33,9 @@ class User(AbstractUser):
     avatar = models.ImageField(blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, blank=True)
     bio = models.TextField(blank=True)
-    # birthDate 는 default 데이트가 정해진게 없기 때문에
     birthDate = models.DateField(blank=True, null=True)
     language = models.CharField(choices=LANGUAGE_CHOICES, max_length=2, blank=True)
-
     curruncy = models.CharField(choices=CURRENCY_CHOICES, max_length=3, blank=True)
-
     superhost = models.BooleanField(default=False)
 
     def __str__(self):
