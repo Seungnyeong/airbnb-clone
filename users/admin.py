@@ -29,13 +29,18 @@ class CustomUserAdmin(UserAdmin):
     )
 
     list_display = (
+        "username",
+        "first_name",
+        "last_name",
+        "email",
+        "is_active",
+        "language",
+        "curruncy",
+        "superhost",
         "avatar",
         "gender",
         "bio",
         "birthDate",
-        "language",
-        "curruncy",
-        "superhost",
     )
 
     list_filter = UserAdmin.list_filter + ("superhost",)

@@ -30,7 +30,9 @@ class User(AbstractUser):
 
     CURRENCY_CHOICES = ((CURRENCY_USD, "USD"), (CURRENCY_KRW, "KRW"))
 
-    avatar = models.ImageField(blank=True)
+    # first_name = models.CharField(max_length=30, blank=True, default="Unnamed User")
+
+    avatar = models.ImageField(upload_to="avatar", blank=True)
     gender = models.CharField(choices=GENDER_CHOICES, max_length=10, blank=True)
     bio = models.TextField(blank=True)
     birthDate = models.DateField(blank=True, null=True)
