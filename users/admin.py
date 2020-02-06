@@ -23,6 +23,7 @@ class CustomUserAdmin(UserAdmin):
                     "curruncy",
                     "language",
                     "superhost",
+                    "login_method",
                 )
             },
         ),
@@ -41,6 +42,9 @@ class CustomUserAdmin(UserAdmin):
         "gender",
         "bio",
         "birthDate",
+        "email_verified",
+        "email_secret",
+        "login_method",
     )
 
     list_filter = UserAdmin.list_filter + ("superhost",)
