@@ -46,11 +46,6 @@ class SignUpView(FormView):
     template_name = "users/signup.html"
     form_class = forms.SignUpForm
     success_url = reverse_lazy("core:home")
-    initial = {
-        "first_name": "seungnyoneg",
-        "last_name": "kim",
-        "email": "mellow0410@naver.com",
-    }
 
     def form_valid(self, form):
         form.save()
@@ -73,7 +68,6 @@ def complete_verification(request, key):
         user.save()
         # to do add sucess message
     except models.User.DoesNotExist:
-        # to do add error message
         pass
     return redirect(reverse("core:home"))
 

@@ -8,5 +8,6 @@
     "python.linting.flake8Args": [
         "--max-line-length=100"
     ],
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "maven.view": "flat"
 }
