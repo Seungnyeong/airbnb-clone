@@ -1,22 +1,24 @@
 import os
 import requests
 from django.views import View
-from django.views.generic import FormView
+from django.contrib.auth.views import PasswordChangeView
+from django.views.generic import FormView, DetailView, UpdateView
 from django.urls import reverse_lazy
 from django.shortcuts import render, redirect, reverse
+from django.contrib.auth.decorators import login_required
 from django.core.files.base import ContentFile
 from django.contrib.auth import authenticate, login, logout
-from . import forms
-from . import models
+from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
+from . import forms, models, mixins
 
 # Create your views here.
 
 
-class LoginView(FormView):
+class LoginView(mixins.LoggedOutOnlyView, FormView):
 
     template_name = "users/login.html"
     form_class = forms.LoginForm
-    success_url = reverse_lazy("core:home")
 
     def form_valid(self, form):
         email = form.cleaned_data.get("email")
@@ -25,6 +27,13 @@ class LoginView(FormView):
         if user is not None:
             login(self.request, user)
         return super().form_valid(form)
+
+    def get_success_url(self):
+        next_args = self.request.GET.get("next")
+        if next_args is not None:
+            return next_args
+        else:
+            return redirect("core:home")
 
     # def get(self, request):
     #     form = forms.LoginForm(initial={"email": "itn@las.com"})
@@ -39,10 +48,11 @@ class LoginView(FormView):
 
 def log_out(request):
     logout(request)
+    messages.info(request, f"See you later")
     return redirect(reverse("core:home"))
 
 
-class SignUpView(FormView):
+class SignUpView(mixins.LoggedOutOnlyView, FormView):
     template_name = "users/signup.html"
     form_class = forms.SignUpForm
     success_url = reverse_lazy("core:home")
@@ -135,14 +145,14 @@ def github_callback(request):
                         user.set_unusable_password()
                         user.save()
                     login(request, user)
-                    # messages.success(request, f"Welcome back {user.first_name}")
+                    messages.success(request, f"Welecome Back {user.first_name}")
                     return redirect(reverse("core:home"))
                 else:
                     raise GithubException("Can't get your profile")
         else:
             raise GithubException("Can't get code")
-    except GithubException:
-        # messages.error(request, e)
+    except GithubException as e:
+        messages.error(request, e)
         return redirect(reverse("users:login"))
 
 
@@ -169,7 +179,7 @@ def kakao_callback(request):
         token_json = token_request.json()
         error = token_json.get("error", None)
         if error is not None:
-            raise KakaoException()
+            raise KakaoException("Can't get auth code")
         access_token = token_json.get("access_token")
         profile_request = requests.get(
             "https://kapi.kakao.com/v2/user/me",
@@ -180,7 +190,7 @@ def kakao_callback(request):
         kakao_account = profile_json.get("kakao_account")
         email = kakao_account.get("email")
         if email is None:
-            raise KakaoException()
+            raise KakaoException("Please also give me your email")
 
         nickname = properties.get("nickname")
         profile_image = properties.get("profile_image")
@@ -188,7 +198,7 @@ def kakao_callback(request):
         try:
             user = models.User.objects.get(email=email)
             if user.login_method != models.User.LOGIN_KAKAO:
-                raise KakaoException()
+                raise KakaoException(f"Please log in with {user.login_method}")
         except models.User.DoesNotExist:
             user = models.User.objects.create(
                 email=email,
@@ -205,6 +215,82 @@ def kakao_callback(request):
                     f"{nickname}-avatar", ContentFile(photo_request.content)
                 )
         login(request, user)
+        messages.success(request, f"Welecome Back {user.first_name}")
         return redirect(reverse("core:home"))
-    except KakaoException:
+    except KakaoException as e:
+        messages.error(request, e)
         return redirect(reverse("users:login"))
+
+
+class UserProfileView(DetailView):
+    model = models.User
+    context_object_name = "user_obj"
+
+
+class UpdateProfileView(mixins.LoggedInOnlyView, SuccessMessageMixin, UpdateView):
+
+    model = models.User
+    template_name = "users/update-profile.html"
+    fields = (
+        "email",
+        "first_name",
+        "last_name",
+        "avatar",
+        "gender",
+        "bio",
+        "birthDate",
+        "curruncy",
+        "language",
+    )
+    success_message = "Profile Updated"
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class=form_class)
+        form.fields["email"].widget.attrs = {"placeholder": "Current Passsword"}
+        form.fields["first_name"].widget.attrs = {"placeholder": "First Name"}
+        form.fields["last_name"].widget.attrs = {"placeholder": "Last Name"}
+        form.fields["avatar"].widget.attrs = {"placeholder": "Avatar"}
+        form.fields["gender"].widget.attrs = {"placeholder": "Gender"}
+        form.fields["bio"].widget.attrs = {"placeholder": "Bio"}
+        form.fields["birthDate"].widget.attrs = {"placeholder": "BirthDate"}
+        form.fields["curruncy"].widget.attrs = {"placeholder": "Currency"}
+        form.fields["language"].widget.attrs = {"placeholder": "Language"}
+        return form
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get("email")
+        self.object.username = email
+        self.object.save()
+        return super().form_valid(form)
+
+
+class UpdatePasswordView(
+    mixins.EmailLoginOnlyVIew,
+    mixins.LoggedInOnlyView,
+    SuccessMessageMixin,
+    PasswordChangeView,
+):
+    template_name = "users/change-password.html"
+    success_message = "Password Updated"
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class=form_class)
+        form.fields["old_password"].widget.attrs = {"placeholder": "Current Passsword"}
+        form.fields["new_password1"].widget.attrs = {"placeholder": "New Password"}
+        form.fields["new_password2"].widget.attrs = {"placeholder": "Confirm Password"}
+        return form
+
+    def get_success_url(self):
+        return self.request.user.get_absolute_url()
+
+
+@login_required
+def switch_hosting(request):
+    try:
+        del request.session["is_hosting"]
+    except KeyError:
+        request.session["is_hosting"] = True
+    return redirect(reverse("core:home"))

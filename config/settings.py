@@ -15,7 +15,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
@@ -143,3 +142,8 @@ EMAIL_PORT = "587"
 EMAIL_HOST_USER = os.environ.get("MAILGUN_USERNAME")
 EMAIL_HOST_PASSWORD = os.environ.get("MAILGUN_PASSWORD")
 EMAIL_FROM = "noreply@sandboxd8eea15f67664e5b85067460c9beab8c.mailgun.org"
+
+
+# AUth
+LOGIN_URL = "/user/login"
+

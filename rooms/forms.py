@@ -29,3 +29,45 @@ class SearchForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
 
+
+class CreatePhotoForm(forms.ModelForm):
+    class Meta:
+        model = models.Photo
+        fields = {"caption", "file"}
+
+    def save(self, pk, *args, **kwargs):
+        photo = super().save(commit=False)
+        room = models.Room.objects.get(pk=pk)
+        photo.room = room
+        photo.save()
+
+
+class CreateRoomForm(forms.ModelForm):
+    class Meta:
+        model = models.Room
+        fields = (
+            "name",
+            "description",
+            "country",
+            "city",
+            "price",
+            "guests",
+            "adress",
+            "beds",
+            "bedrooms",
+            "baths",
+            "check_in",
+            "check_out",
+            "instant_book",
+            "host",
+            "room_type",
+            "amenities",
+            "facilities",
+            "house_rules",
+        )
+
+        # user가 없을 떄 다른 방법
+        def save(self, *args, **kwargs):
+            # commit false 는 데이터베이스에는 저장하지 않지만, 파이썬에서 오브젝트를 생성해준다.
+            room = super().save(commit=False)
+            return room
