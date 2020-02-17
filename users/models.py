@@ -1,11 +1,13 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 import uuid
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from django.shortcuts import reverse
+from core import managers as core_managers
 
 # Create your models here.
 
@@ -19,16 +21,16 @@ class User(AbstractUser):
     GENDER_OTHER = "other"
 
     GENDER_CHOICES = (
-        (GENDER_MALE, "Male"),
-        (GENDER_FEMALE, "Female"),
-        (GENDER_OTHER, "Other"),
+        (GENDER_MALE, _("Male")),
+        (GENDER_FEMALE, _("Female")),
+        (GENDER_OTHER, _("Other")),
     )
 
     LANGUAGE_ENGLISH = "en"
     LANGUAGE_KOREAN = "kr"
     LANGUAGE_CHOICES = (
-        (LANGUAGE_ENGLISH, "English"),
-        (LANGUAGE_KOREAN, "Korean"),
+        (LANGUAGE_ENGLISH, _("English")),
+        (LANGUAGE_KOREAN, _("Korean")),
     )
 
     CURRENCY_USD = "usd"
@@ -49,8 +51,10 @@ class User(AbstractUser):
     # first_name = models.CharField(max_length=30, blank=True, default="Unnamed User")
 
     avatar = models.ImageField(upload_to="avatar", blank=True)
-    gender = models.CharField(choices=GENDER_CHOICES, max_length=10, blank=True)
-    bio = models.TextField(blank=True)
+    gender = models.CharField(
+        _("gender"), choices=GENDER_CHOICES, max_length=10, blank=True
+    )
+    bio = models.TextField(_("bio"), blank=True)
     birthDate = models.DateField(blank=True, null=True)
     curruncy = models.CharField(
         choices=CURRENCY_CHOICES, max_length=3, blank=True, default=CURRENCY_KRW
@@ -68,6 +72,8 @@ class User(AbstractUser):
     def get_absolute_url(self):
         return reverse("users:profile", kwargs={"pk": self.pk})
 
+    objects = core_managers.CustomUserManager()
+
     def verify_email(self):
         if self.email_verified is False:
             secret = uuid.uuid4().hex[:20]
@@ -76,7 +82,7 @@ class User(AbstractUser):
                 "emails/verify_email.html", {"secret": secret}
             )
             send_mail(
-                "Verify Airbnb Account",
+                _("Verify Airbnb Account"),
                 strip_tags(html_message),
                 settings.EMAIL_FROM,
                 [self.email],

@@ -1,5 +1,5 @@
 from django.db import models
-from . import manager
+from . import managers
 
 # Create your models here.
 
@@ -10,7 +10,7 @@ class TimeStampedModel(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    objects = manager.CustomModelManager()
+    objects = managers.CustomModelManager()
 
     class Meta:
         abstract = True

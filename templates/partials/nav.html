@@ -16,7 +16,11 @@
             {% endif %}
         </li>
         <li class="nav_link ">
+            <a href="{% url 'lists:see-fav' %}">My Favorite</a>
+        </li>
+        <li class="nav_link ">
             {% include "mixins/user_avatar.html" with user=user h_and_w='w-10 h-10' %}
+            
             <a href="{{user.get_absolute_url}}">My Profile</a>
         </li>        
         <li class="nav_link "><a href="{% url "users:logout" %}">Log out</a></li>  
